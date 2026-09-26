@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Products{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Our Products</h2>
+
+<div class="mb-3">
+    <a href="{% url 'products:list' %}" class="btn btn-sm {% if not current_category %}btn-primary{% else %}btn-outline-primary{% endif %}">All</a>
+    {% for cat in categories %}
+        <a href="?category={{ cat.slug }}" class="btn btn-sm {% if current_category == cat.slug %}btn-primary{% else %}btn-outline-primary{% endif %}">{{ cat.name }}</a>
+    {% endfor %}
+</div>
+
+<div class="row g-4">
+    {% for product in products %}
+    <div class="col-md-3">
+        <div class="card product-card h-100 shadow-sm">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% else %}
+                <img src="https://via.placeholder.com/300x200?text=No+Image" alt="no image">
+            {% endif %}
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <div class="star-rating mb-2">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= product.average_rating %}★{% else %}☆{% endif %}
+                    {% endfor %}
+                    <small class="text-muted">({{ product.total_reviews }})</small>
+                </div>
+                <p class="fw-bold text-primary mb-2">${{ product.price }}</p>
+                <a href="{{ product.get_absolute_url }}" class="btn btn-sm btn-dark mt-auto">View Details</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>No products found.</p>
+    {% endfor %}
+</div>
+
+{% if products.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if products.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ products.previous_page_number }}">«</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">{{ products.number }}</span></li>
+        {% if products.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ products.next_page_number }}">»</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-5">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" class="img-fluid rounded" alt="{{ product.name }}">
+        {% else %}
+            <img src="https://via.placeholder.com/500x400?text=No+Image" class="img-fluid rounded">
+        {% endif %}
+    </div>
+    <div class="col-md-7">
+        <h2>{{ product.name }}</h2>
+        <p class="text-muted">Category: {{ product.category.name }}</p>
+        <div class="mb-3">
+            <span class="star-rating">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= product.average_rating %}★{% else %}☆{% endif %}
+                {% endfor %}
+            </span>
+            <strong>{{ product.average_rating }}</strong>
+            <small class="text-muted">({{ product.total_reviews }} reviews)</small>
+        </div>
+        <h3 class="text-primary">${{ product.price }}</h3>
+        <p>{{ product.description|linebreaks }}</p>
+        <p><strong>Stock:</strong> {{ product.stock }}</p>
+    </div>
+</div>
+
+<hr class="my-5">
+
+<!-- Rating distribution -->
+<div class="row">
+    <div class="col-md-4">
+        <h5>Rating Breakdown</h5>
+        {% for star, count in distribution.items %}
+            <div class="d-flex align-items-center mb-1">
+                <span style="width:60px;">{{ star }} ★</span>
+                <div class="rating-bar flex-grow-1 mx-2">
+                    <div style="width:{% if product.total_reviews %}{% widthratio count product.total_reviews 100 %}{% else %}0{% endif %}%"></div>
+                </div>
+                <span class="text-muted">{{ count }}</span>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="col-md-8">
+        <h5>{% if user_review %}Edit Your Review{% else %}Write a Review{% endif %}</h5>
+
+        {% if user.is_authenticated %}
+            <form method="post" action="{% url 'reviews:submit' product.id %}">
+                {% csrf_token %}
+                <div class="mb-2">
+                    <label class="form-label">Your Rating</label>
+                    <div class="star-radio d-flex flex-row-reverse justify-content-end">
+                        {% for choice in 5|make_list %}
+                        {% endfor %}
+                        {% for value, label in 5|stringformat:"s"|yesno:",," %}{% endfor %}
+                        {# Rendering radio stars #}
+                        <input type="radio" name="score" id="star5" value="5" {% if user_review.score == 5 %}checked{% endif %}><label for="star5">★</label>
+                        <input type="radio" name="score" id="star4" value="4" {% if user_review.score == 4 %}checked{% endif %}><label for="star4">★</label>
+                        <input type="radio" name="score" id="star3" value="3" {% if user_review.score == 3 %}checked{% endif %}><label for="star3">★</label>
+                        <input type="radio" name="score" id="star2" value="2" {% if user_review.score == 2 %}checked{% endif %}><label for="star2">★</label>
+                        <input type="radio" name="score" id="star1" value="1" {% if user_review.score == 1 %}checked{% endif %}><label for="star1">★</label>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <input type="text" name="title" class="form-control" placeholder="Review title (optional)" value="{{ user_review.title|default:'' }}">
+                </div>
+                <div class="mb-2">
+                    <textarea name="comment" class="form-control" rows="3" placeholder="Share your experience...">{{ user_review.comment|default:'' }}</textarea>
+                </div>
+                <button class="btn btn-warning">{% if user_review %}Update Review{% else %}Submit Review{% endif %}</button>
+            </form>
+
+            {% if user_review %}
+            <form method="post" action="{% url 'reviews:delete' user_review.id %}" class="mt-2">
+                {% csrf_token %}
+                <button class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete your review?')">Delete Review</button>
+            </form>
+            {% endif %}
+        {% else %}
+            <p><a href="{% url 'login' %}?next={{ request.path }}">Login</a> to write a review.</p>
+        {% endif %}
+    </div>
+</div>
+
+<hr class="my-5">
+
+<h4>All Reviews ({{ product.total_reviews }})</h4>
+{% for review in reviews %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <strong>{{ review.user.username }}</strong>
+                    <span class="star-rating ms-2">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.score %}★{% else %}☆{% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
+                <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+            </div>
+            {% if review.title %}<h6 class="mt-2 mb-1">{{ review.title }}</h6>{% endif %}
+            <p class="mb-0">{{ review.comment }}</p>
+        </div>
+    </div>
+{% empty %}
+    <p class="text-muted">No reviews yet. Be the first to review!</p>
+{% endfor %}
+{% endblock %}

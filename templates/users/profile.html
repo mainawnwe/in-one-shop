@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<h2>{{ user.username }}'s Profile</h2>
+<p class="text-muted">{{ user.email }}</p>
+<hr>
+<h4>My Reviews ({{ reviews.count }})</h4>
+{% for review in reviews %}
+    <div class="card mb-2">
+        <div class="card-body">
+            <strong>{{ review.product.name }}</strong> —
+            <span class="star-rating">
+                {% for i in "12345" %}{% if forloop.counter <= review.score %}★{% else %}☆{% endif %}{% endfor %}
+            </span>
+            <p class="mb-0 mt-1">{{ review.comment|truncatewords:30 }}</p>
+        </div>
+    </div>
+{% empty %}
+    <p class="text-muted">You haven't reviewed any products yet.</p>
+{% endfor %}
+{% endblock %}
