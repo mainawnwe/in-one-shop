@@ -1,15 +1,19 @@
 # config/settings/production.py
 from .base import *
-import dj_database_url
 from decouple import config  # ဒီ line ကို ထည့်ပါ
 
-DEBUG = False
+# DEBUG ကို Environment Variable ကနေ ဖတ်အောင် ပြင်လိုက်ပါ
+DEBUG = config('DEBUG', default=False, cast=bool)
+
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=lambda v: [s.strip() for s in v.split(',')])
+
+# Render ရဲ့ Domain အတွက် လုံခြုံရေး setting
+CSRF_TRUSTED_ORIGINS = ['https://in-one-shop.onrender.com']
 
 MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# --- ဒီအပိုင်းကို အသစ်ပြောင်းလိုက်ပါ ---
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -23,7 +27,6 @@ DATABASES = {
         },
     }
 }
-# ------------------------------------
 
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
